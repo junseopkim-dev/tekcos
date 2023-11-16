@@ -118,6 +118,9 @@ class FileTransfer:
         #
         # 이름 전송 종료
 
+        self.tcp_file_name_transfer(basename,tcp_send_func)
+
+
         # 파일을 구성하는 data를 전송한다.
         # tcp_file_data_packet이 생성하는 packet을 tcp를 이용해 전부 전송한다.
         #
@@ -125,13 +128,23 @@ class FileTransfer:
         #
         # 파일 data 전송 종료
 
+        data_ready, packet = self.tcp_file_data_packet()
+        while data_ready:
+            tcp_send_func(packet)
+            data_ready, packet = self.tcp_file_data_packet()
+        
+        
+       
+
         # TCP_FILE_TRANSFER_END을 전송하여 
         # 파일의 전송이 끝냈음을 알린다.
         #
         # todo
         #
         # TCP_FILE_TRANSFER_END을 전송 종료
-        
+        tcp_send_func(TCP_FILE_TRANSFER_END)
+
+
 
         # 파일 닫기
         self.file_pointer.close()
@@ -150,12 +163,17 @@ class FileTransfer:
             #
             # todo
             #
+
+            self.file_pointer=open(file_path, "wb")
+
             return 0
 
         elif packet_type == PACKET_TYPE_FILE_DATA:
             # self.file_pointer에 전송 받은 data를 저장한다.
             # todo
             # 
+            self.file_pointer.write(data)
+
             return 1
             
         elif packet_type == PACKET_TYPE_FILE_END:
@@ -163,6 +181,8 @@ class FileTransfer:
             # 
             # todo
             #
+            self.file_pointer.close()
+            self.file_pointer = None
             return 2
 
     def udp_file_name_transfer(self, file_name: str, udp_send_func: Callable)-> None:

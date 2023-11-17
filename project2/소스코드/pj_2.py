@@ -204,12 +204,6 @@ class FileTransfer:
         #
         self.udp_file_name_transfer(basename, udp_send_func)
         
-        while not self.udp_ack_windows[self.udp_ack_num - 1]:
-            if self.udp_time_out():
-                self.udp_file_name_transfer(basename, udp_send_func) 
-            else:
-                sleep(UDP_WAIT)
-        
         data_ready, data = self.udp_file_data()
         
         while data_ready:
@@ -231,10 +225,10 @@ class FileTransfer:
                 #
                 
                 while not self.udp_ack_windows[self.udp_ack_num - 1]:
-                        if self.udp_time_out():
-                            self.udp_pipeline(udp_send_func)
-                        else:
-                            sleep(UDP_WAIT)
+                    if self.udp_time_out():
+                        self.udp_pipeline(udp_send_func)
+                    else:
+                        sleep(UDP_WAIT)
 
                 pass
 
@@ -250,8 +244,7 @@ class FileTransfer:
                 self.udp_pipeline(udp_send_func)
             else:
                 sleep(UDP_WAIT)
-
-                     
+            
         # 파일 전송이 완료되었음을 알리고 ack에 대비한다.
         # 
         # todo
@@ -259,13 +252,6 @@ class FileTransfer:
         
         self.udp_send_with_record(PACKET_TYPE_FILE_END, b'', udp_send_func)
         
-        while not self.udp_ack_windows[self.udp_ack_num - 1]:
-            if self.udp_time_out():
- 
-                self.udp_send_with_record(PACKET_TYPE_FILE_END, b'', udp_send_func)
-            else:
-                sleep(UDP_WAIT)
-                
         # 파일 포인터를 제거한다.
         self.file_pointer.close()
         self.file_pointer = None
@@ -281,8 +267,7 @@ class FileTransfer:
             #
             
             self.udp_ack_send(ack_bytes, udp_send_func)
-            #self.udp_ack_recieve(ack, udp_send_func)
-            
+ 
             pass
 
         if packet_type == PACKET_TYPE_FILE_START:  # file transfer start
@@ -348,8 +333,7 @@ class FileTransfer:
             #
 
             if not self.udp_ack_windows[self.udp_ack_num]:
-                
-                
+                              
                 self.udp_ack_windows[self.udp_ack_num] = True
                 del self.udp_send_packet[self.udp_ack_num]
                 self.udp_ack_num = (self.udp_ack_num + 1) % UDP_MAX_ACK_NUM
@@ -377,7 +361,7 @@ class FileTransfer:
         
         for ack_num in self.udp_send_packet:
             
-            print("PIPELINE for ack_num in self.udp_send_packet: ", ack_num)
+            print("PIPELINE")
             
             send_time, packet = self.udp_send_packet[ack_num]
             self.udp_send_packet[ack_num] = (time(), packet)

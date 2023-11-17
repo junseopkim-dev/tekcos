@@ -205,7 +205,7 @@ class FileTransfer:
         self.udp_file_name_transfer(basename, udp_send_func)
         
         data_ready, data = self.udp_file_data()
-        
+
         while data_ready:
             if len(self.udp_send_packet) < UDP_WINDOW_SIZE: #window의 크기보다 전송한 패킷의 양의 적은 경우
                 # 
@@ -217,16 +217,18 @@ class FileTransfer:
                 data_ready, data = self.udp_file_data() # 다음 전송할 data를 준비한다.
                 
             else:
-                
+
                 # PIPELINE을 위한 window를 전체를 사용하여 ack를 기다리며 timeout에 대처한다.
                 # Timeout이 아닌 경우에는 Sleep(UDP_WAIT)를 사용한다.
                 #
                 # todo
                 #
-                
-                while not self.udp_ack_windows[self.udp_ack_num - 1]:
+             
+                while not self.udp_ack_windows[self.udp_ack_num]:
+                    
                     if self.udp_time_out():
                         self.udp_pipeline(udp_send_func)
+                        break
                     else:
                         sleep(UDP_WAIT)
 
@@ -236,11 +238,14 @@ class FileTransfer:
         #
         # todo
         #
-        
-
-        while not self.udp_ack_windows[self.udp_ack_num - 1]:
-
+       
+        while not self.udp_ack_windows[self.udp_ack_num]:
+            
+            if self.udp_ack_num == self.udp_last_ack_num:
+                break
+            
             if self.udp_time_out():
+                
                 self.udp_pipeline(udp_send_func)
             else:
                 sleep(UDP_WAIT)
@@ -331,13 +336,16 @@ class FileTransfer:
             # 
             # todo
             #
-
-            if not self.udp_ack_windows[self.udp_ack_num]:
-                              
+ 
+            if self.udp_ack_num not in self.udp_send_packet.keys():
+                return 1
+            
+            if self.udp_ack_num == ack_num:
+                
                 self.udp_ack_windows[self.udp_ack_num] = True
                 del self.udp_send_packet[self.udp_ack_num]
                 self.udp_ack_num = (self.udp_ack_num + 1) % UDP_MAX_ACK_NUM
-                    
+                
             return 1
         
         return 1
@@ -359,15 +367,14 @@ class FileTransfer:
         # udp_file_send()에서 사용
         
         
-        for ack_num in self.udp_send_packet:
-            
-            print("PIPELINE")
+        for ack_num in range(self.udp_ack_num, self.udp_last_ack_num):
             
             send_time, packet = self.udp_send_packet[ack_num]
-            self.udp_send_packet[ack_num] = (time(), packet)
             udp_send_func(packet)
-        
-        
+            self.udp_send_packet[ack_num] = (time(), packet)
+            
+                            
+            
     def udp_ack_send(self, ack_bytes: bytes, udp_send_func: Callable):
         packet = PACKET_TYPE_FILE_ACK + ack_bytes
         packet = self.udp_packet_pack(PACKET_TYPE_FILE_ACK, ack_bytes, b'')

@@ -207,10 +207,12 @@ class FileTransfer:
         self.udp_file_name_transfer(basename, udp_send_func)
 
         while self.udp_ack_num != self.udp_last_ack_num:
-           
             if self.udp_ack_num == 0:
                 if self.udp_time_out():
                     self.udp_file_name_transfer(basename, udp_send_func)
+                    break
+                else:
+                    sleep(UDP_WAIT)
         
         data_ready, data = self.udp_file_data()
         
@@ -271,7 +273,9 @@ class FileTransfer:
             if self.udp_ack_num != self.udp_last_ack_num:
                 if self.udp_time_out():
                     self.udp_send_with_record(PACKET_TYPE_FILE_END, b'', udp_send_func)
-                
+                    break
+                else:
+                    sleep(UDP_WAIT)
         
         # 파일 포인터를 제거한다.
         self.file_pointer.close()

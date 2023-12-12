@@ -21,7 +21,7 @@ class ARPTable:
         
         conf.verb = 1
         
-        ans, _ = srp(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ips), iface=interface, timeout=2, inter = 0.1, verbose=False)
+        ans, _ = srp(Ether(dst="ff:ff:ff:ff:ff:ff") / ARP(pdst=ips), iface=interface, timeout=2, inter = 0.1)
 
         for snd, rcv in ans:
             # todo: arp response (ans)로부터 ip address와 mac address를 get

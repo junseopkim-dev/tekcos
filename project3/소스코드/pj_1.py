@@ -54,7 +54,7 @@ class NetworkSocket:
     def udp_server_connect(udp_server_socket: socket.socket):
         # udp_client_socket 함수가 전송한 packet으로부터 client의 udp address(udp_client_addr) 반환 
         
-        data, addr = udp_server_socket.recvfrom(1024)
+        data, addr = udp_server_socket.recvfrom(APP_HEADER_LEN+PACKET_SIZE)
         return addr
 
     @staticmethod
@@ -84,14 +84,14 @@ class NetworkSocket:
     def tcp_recv(self) -> bytes:
         # TCP socket(tcp_socket)으로 들어오는 packet의 data 반환  
         
-        data = self.tcp_socket.recv(1024)
+        data = self.tcp_socket.recv(APP_HEADER_LEN+PACKET_SIZE)
         
         return data
 
     def udp_recv(self) -> bytes:
         # UDP socket(udp_socket)으로 들어오는 packet의 data 반환 
         
-        data , addr = self.udp_socket.recvfrom(1024)
+        data , addr = self.udp_socket.recvfrom(APP_HEADER_LEN+PACKET_SIZE)
          
         return data
 
